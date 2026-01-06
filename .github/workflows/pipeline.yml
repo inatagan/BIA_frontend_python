@@ -1,5 +1,4 @@
-name: CI-CD   # ou "CI_CD"
-
+name: CI-CD
 on:
   push:
     branches:
