@@ -1,14 +1,16 @@
 import streamlit as st
 from textblob import TextBlob
 import requests
+from infra import ApiHealth
 
-def login(name: str, email: str):
-    urlAPI = ''
+ApiHealth()
+
+def login(password: str, email: str):
+    urlAPI = 'https://localhost:8080/api/v1/auth'
     userData = {
-        f"nome": {name},
-        f"email": {email}
+        f"email": {email},
+        f"nome": {password}
     }
-    
     try:
         response = requests.post(url=urlAPI, json=userData)
         if (response.status_code == 201): #201 status criado
@@ -21,7 +23,7 @@ def login(name: str, email: str):
 
 
 def registerUser(name: str, email:str, password:str):
-    urlAPI = ''
+    urlAPI = 'https://localhost:8080/api/v1/auth'
     newUser = {
         "name": {name},
         "email": {email},
@@ -45,12 +47,15 @@ if page == "Login":
     email = st.text_input("Email")
     password = st.text_input("Senha", type="password")
     # TODO: cria lógica do login
+    login(email=email, password=password)
 
 elif page == "Registrar":
     st.markdown("<h1 style='text-align: center;'>Registrar</h1>", unsafe_allow_html=True)
-    new_email = st.text_input("Novo Email")
-    new_password = st.text_input("Nova Senha", type="password")
+    name = st.text_input("nome", placeholder="your beatifull name")
+    new_email = st.text_input("Novo Email", placeholder="your best email, my Sir")
+    new_password = st.text_input("Nova Senha", type="password", placeholder="enter your favorite password")
     # TODO: cria lógica de criar usuário
+    registerUser(name=name, email=new_email, password=new_password)
 
 elif page == "Análise":
     st.title('Análise de Sentimentos' , help='https://github.com/ONE-sentiment-analysis/BIA_frontend_python')
