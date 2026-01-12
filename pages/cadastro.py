@@ -165,7 +165,7 @@ if cadastrar:
         st.error("Preencha todos os campos")
     else:
         st.success("Usuário cadastrado com sucesso 🎉")
-        st.switch_page("index.py")
+        st.switch_page("app.py")
 
 if voltar:
-    st.switch_page("index.py")
+    st.switch_page("app.py")

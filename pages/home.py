@@ -27,7 +27,7 @@ st.markdown("""
 # Caso o usuário tente entrar sem login 
 if "logado" not in st.session_state or not st.session_state.logado:
     st.info("Por favor, faça login primeiro.")
-    st.switch_page("index.py")  # página de login
+    st.switch_page("app.py")  # página de login
     st.stop()
 
 if "active_tab" not in st.session_state:
