@@ -4,6 +4,11 @@
 import streamlit as st
 import requests
 
+def health():
+    response = requests.get("http://localhost:8080/actuator/health")
+    print(response.status_code)
+    print(response.content)
+    
 def login(password: str, email: str):
     urlAPI = 'http:localhost:8080/api/v1/auth'
     userData = {
@@ -135,8 +140,7 @@ with st.form("cadastro_form"):
     senha = st.text_input("Senha", type="password", icon=":material/lock:")
     
     
-    registerUser(name=nome, email=email, password=senha)
-    
+
     
     st.selectbox(
         "Selecione seu pronome:",
@@ -155,7 +159,8 @@ with st.form("cadastro_form"):
 
     with col_cadastrar:
         cadastrar = st.form_submit_button("Cadastrar", use_container_width=True)
-
+        if (cadastrar):
+            registerUser(name=nome, email=email, password=senha)
     with col_voltar:
         voltar = st.form_submit_button("↩ Voltar", use_container_width=True)
 
