@@ -3,11 +3,6 @@
 
 import streamlit as st
 import requests
-
-def health():
-    response = requests.get("http://localhost:8080/actuator/health")
-    print(response.status_code)
-    print(response.content)
     
 def login(password: str, email: str):
     urlAPI = 'http:localhost:8080/api/v1/auth'

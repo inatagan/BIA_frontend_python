@@ -1,7 +1,9 @@
 #Tela "principal e tela de Login (a fazer: conectar o backend)"
 
 import streamlit as st
+from infra.ApiHealth import health
 
+health()
 # ---------- CONFIGURAÇÃO ----------
 st.set_page_config(page_title="Login", layout="centered")
 

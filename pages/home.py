@@ -6,10 +6,8 @@ from streamlit_option_menu import option_menu
 import requests
 from requests.auth import HTTPBasicAuth
 import uuid
-from infra import ApiHealth
 
 # Verifica se API do Spring boot está no ar
-ApiHealth()
 
 # Título da página (visível na aba)
 st.set_page_config(page_title="BIA • Home", layout="wide")
