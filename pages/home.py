@@ -143,6 +143,7 @@ if active == "sobre":
 # ---------------- ABA ANÁLISE ----------------
 elif active == "analise":
     
+    
     st.sidebar.title("Configuração")
     response_type = st.sidebar.checkbox("Mostrar resposta em JSON", value=True)
     model_choice = st.sidebar.selectbox("Modelo", ["TextBlob", "Oracle"])
@@ -150,19 +151,27 @@ elif active == "analise":
     ia_name = "B.I.A"
 
     col_titulo, col_foto = st.columns([0.85, 0.15])
+
     with col_titulo:
-        st.title(
-            '🤖 Análise de Sentimentos',
-            help='https://github.com/ONE-sentiment-analysis/BIA_frontend_python'
-        )
-    
-    # Botão para upload de fotos e prévia da mesma
+        col_img, col_text = st.columns([0.06, 0.94], gap="small")
+        with col_img:
+            st.image("img/inverse-removebg-preview.png", width=350)
+        with col_text:
+            st.title(
+                "Análise de Sentimentos",
+                help="https://github.com/ONE-sentiment-analysis/BIA_frontend_python"
+            )
+
     with col_foto:
         with st.popover("Foto"):
             st.write("Ajuste seu Perfil")
-            user_icon = st.file_uploader("Escolha uma foto", type=["jpeg", "jpg", "png"])
-            if user_icon is not None:
-                st.image(user_icon, caption="Prévia da foto", width=150)
+            user_icon = st.file_uploader(
+                "Escolha uma foto",
+                type=["jpeg", "jpg", "png"]
+        )
+        if user_icon is not None:
+            st.image(user_icon, caption="Prévia da foto", width=150)
+
 
     user_input = st.chat_input("Digite sua mensagem para análise:")
 

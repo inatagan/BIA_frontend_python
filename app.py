@@ -36,9 +36,9 @@ def aplicar_estilo():
         <style>
         
         [data-testid="stForm"] {
-            border: 1px solid #333;
+            border: 1px solid #2A2540;
             border-radius: 15px;
-            background-color: #181621;
+            background-color: #1B182B;
             padding: 2rem;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
@@ -53,8 +53,8 @@ def aplicar_estilo():
 
         /* Estiliza o botão de LOGIN  */
         div[data-testid="stFormSubmitButton"] > button:first-child {
-            background-color: #590F7F!important;
-            color: white !important;
+            background-color: #6A1BB2!important;
+            color: #FFFFFF !important;
             border-radius: 8px;
             border: none;
             height: 3em;
@@ -63,7 +63,7 @@ def aplicar_estilo():
         }
         
         div[data-testid="stFormSubmitButton"] > button:first-child:hover {
-            background-color: #410B5D !important;
+            background-color: #581599 !important;
             transform: scale(1.02);
         }
 
@@ -71,8 +71,8 @@ def aplicar_estilo():
         
         div.stColumn:nth-of-type(3) button {
             background-color: transparent !important;
-            color:#6F139C !important;
-            border: 1px solid #30363d !important;
+            color:#C86BEB !important;
+            border: 1px solid #3A345C !important;
             border-radius: 8px;
             height: 3em;
             transition: 0.3s;
@@ -80,7 +80,7 @@ def aplicar_estilo():
 
         div.stColumn:nth-of-type(3) button:hover {
             border-color: #8b949e !important;
-            background-color: #21262d !important;
+            background-color: #211D33 !important;
             color: white !important;
         }
         </style>

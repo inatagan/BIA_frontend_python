@@ -60,9 +60,9 @@ def aplicar_estilo():
 
     /* CARD */
     [data-testid="stForm"] {
-        border: 1px solid #333;
+        border: 1px solid #2A2540;
         border-radius: 18px;
-        background-color: #181621;
+        background-color: #1B182B;
         padding: 2.5rem;
         box-shadow: 0 6px 18px rgba(0,0,0,0.45);
         max-width: 520px;
@@ -90,27 +90,27 @@ def aplicar_estilo():
 
     /* BOTÃO 1 — CADASTRAR */
     div[data-testid="stFormSubmitButton"] button:nth-of-type(1) {
-        background-color: #590F7F !important;
+        background-color: #6A1BB2 !important;
         color: white !important;
         border: none !important;
-        box-shadow: 0 4px 10px rgba(65, 11, 93, 1.0);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.45);
     }
 
     div[data-testid="stFormSubmitButton"] button:nth-of-type(1):hover {
-        background-color: #410B5D !important;
+        background-color: #581599 !important;
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(65, 11, 93, 1.0);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.45);
     }
 
     /* BOTÃO 2 — VOLTAR */
     div[data-testid="stFormSubmitButton"] button:nth-of-type(2) {
         background-color: transparent !important;
-        color: #590F7F !important;
+        color: #4C157F !important;
         border: 1px solid #30363d !important;
     }
 
     div[data-testid="stFormSubmitButton"] button:nth-of-type(2):hover {
-        border-color: #410B5D !important;
+        border-color: #3C0F63 !important;
         background-color: #21262d !important;
         color: white !important;
         transform: translateY(-2px);
