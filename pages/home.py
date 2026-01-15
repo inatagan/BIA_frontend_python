@@ -1,33 +1,24 @@
-# Parte Principal do projeto
-
 import streamlit as st
+import pandas as pd
 from textblob import TextBlob
 from streamlit_option_menu import option_menu
 import requests
 from requests.auth import HTTPBasicAuth
 import uuid
 
-# Verifica se API do Spring boot está no ar
-
-# Título da página (visível na aba)
 st.set_page_config(page_title="BIA • Home", layout="wide")
-
 
 st.markdown("""
 <style>
-[data-testid="stSidebarNav"] {
-    display: none;
-}
-.nav-container {
-    margin-bottom: 20px;
-}
+[data-testid="stSidebarNav"] { display: none; }
+.nav-container { margin-bottom: 20px; }
 </style>
 """, unsafe_allow_html=True)
 
-# Caso o usuário tente entrar sem login 
+# --- INICIALIZAÇÃO DE ESTADOS ---
 if "logado" not in st.session_state or not st.session_state.logado:
     st.info("Por favor, faça login primeiro.")
-    st.switch_page("app.py")  # página de login
+    st.switch_page("app.py")
     st.stop()
 
 if "active_tab" not in st.session_state:
@@ -36,11 +27,13 @@ if "active_tab" not in st.session_state:
 if "history" not in st.session_state:
     st.session_state.history = []
 
+if "user_icon" not in st.session_state:
+    st.session_state.user_icon = None
 
+# --- NAVBAR ---
 tab_map = {"sobre": 0, "analise": 1, "hist": 2}
 current_index = tab_map.get(st.session_state.active_tab, 0)
 
-# Navbar para navegação entre os "setores" + css
 st.markdown('<div class="nav-container">', unsafe_allow_html=True)
 selected = option_menu(
     menu_title=None,
@@ -49,43 +42,13 @@ selected = option_menu(
     default_index=current_index,
     orientation="horizontal",
     styles={
-        "container": {
-            "padding": "0px!important", 
-            "background-color": "#6A1BB2",
-            "border-radius": "10px",
-            "display": "flex",
-            "justify-content": "center",
-            "overflow": "hidden"
-        },
-        "icon": {
-            "color": "#C86BEB", 
-            "font-size": "16px"
-        }, 
-        "nav-link": {
-            "flex": "1",
-            "display": "flex",
-            "align-items": "center",
-            "justify-content": "center",
-            "gap": "8px",
-            "font-size": "14px", 
-            "color": "white",
-            "text-align": "center", 
-            "margin": "0px", 
-            "padding": "15px 5px",
-            "font-weight": "500",
-            "border-right": "1px solid rgba(255, 255, 255, 0.15)",
-            "border-radius": "0px",
-            "--hover-color": "#581599",
-            "white-space": "nowrap"
-        },
-        "nav-link-selected": {
-            "background-color": "#581599", 
-            "font-weight": "bold",
-        },
+        "container": {"padding": "0px!important", "background-color": "#6A1BB2", "border-radius": "10px", "display": "flex", "justify-content": "center", "overflow": "hidden"},
+        "icon": {"color": "#C86BEB", "font-size": "16px"}, 
+        "nav-link": {"flex": "1", "display": "flex", "align-items": "center", "justify-content": "center", "gap": "8px", "font-size": "14px", "color": "white", "padding": "15px 5px", "border-right": "1px solid rgba(255,255,255,0.15)"},
+        "nav-link-selected": {"background-color": "#581599", "font-weight": "bold"},
     }
 )
 
-# Atualização de estado baseada na seleção
 if selected == "Sobre" and st.session_state.active_tab != "sobre":
     st.session_state.active_tab = "sobre"
     st.rerun()
@@ -97,24 +60,40 @@ elif selected == "Histórico" and st.session_state.active_tab != "hist":
     st.rerun()
 
 st.markdown('</div>', unsafe_allow_html=True)
-
-# Define a variável de controle baseada no estado
 active = st.session_state.active_tab
-
 st.divider()
 
-# ---------------- ABA SOBRE ----------------
+# --- FUNÇÕES DE ANÁLISE ---
+def responseJson(sentiment, acc):
+    return {"previsibilidade": sentiment, "probabilidade": round(acc, 2)}
+
+def responseAlternative(sentiment, acc):
+    if sentiment == "Positivo": st.success(f"{sentiment} - Probabilidade: {acc:.2f}")
+    elif sentiment == "Negativo": st.error(f"{sentiment} - Probabilidade: {acc:.2f}")
+    else: st.warning(f"{sentiment} - Probabilidade: {acc:.2f}")
+
+def analyze(text: str, model: str):
+    if model == "TextBlob":
+        blob = TextBlob(text)
+        sentiment = blob.sentiment.polarity  
+        if sentiment > 0: return responseJson("Positivo", sentiment)
+        elif sentiment < 0: return responseJson("Negativo", abs(sentiment))
+        else: return responseJson("Neutro", 0)
+    else:
+        try:
+            auth = HTTPBasicAuth("user", "123")
+            r = requests.post("http://localhost:8080/api/v1/sentiment", 
+                              json={"id": str(uuid.uuid4()), "text": text}, 
+                              auth=auth, timeout=10)
+            return r.json() if r.status_code == 200 else responseJson("Erro na API", 0)
+        except: return responseJson("Erro de conexão", 0)
+
+# SOBRE 
 if active == "sobre":
     col_img, col_titulo = st.columns([0.06, 0.94], gap="small")
-
-    with col_img:
-        st.image("img/inverse-removebg-preview.png", width=95)
-
-    with col_titulo:
-        st.markdown("## B.I.A — Assistente de Análise de Sentimentos")
+    with col_img: st.image("img/inverse-removebg-preview.png", width=95)
+    with col_titulo: st.markdown("## B.I.A — Assistente de Análise de Sentimentos")
     
-    st.write("")
-
     texto = (
         "Projeto desenvolvido como estrutura base para o Hackaton da ORACLE."
         " Esta aplicação, construída com Spring Boot, tem como objetivo integrar-se a um modelo de classificação de sentimentos fornecido por uma API externa desenvolvida em Python."
@@ -136,133 +115,94 @@ if active == "sobre":
         "- JUnit + Mockito + H2 \n"
         "- Resilience4j (Circuit Breaker, Retry, Rate Limiter, Bulkhead, TimeLimiter)  \n"
         "- Observabilidade: Actuator + Prometheus + Grafana \n"
-        "- Dockerfile e docker-compose"
+        "- Dockerfile e docker-compose \n"
+        "- Streamlit"
     )
 
-
-# ---------------- ABA ANÁLISE ----------------
+# ANÁLISE 
 elif active == "analise":
-    
-    
     st.sidebar.title("Configuração")
     response_type = st.sidebar.checkbox("Mostrar resposta em JSON", value=True)
     model_choice = st.sidebar.selectbox("Modelo", ["TextBlob", "Oracle"])
     user_name = st.sidebar.text_input("Nome do usuário", value="você").capitalize().strip()
     ia_name = "B.I.A"
 
-    col_titulo, col_foto = st.columns([0.85, 0.15])
+    # csv
+    st.sidebar.divider()
+    st.sidebar.subheader("📁 Processamento em Lote")
+    uploaded_file = st.sidebar.file_uploader("Subir arquivo CSV", type=["csv"])
 
-    with col_titulo:
+    if uploaded_file is not None:
+        df = pd.read_csv(uploaded_file)
+        column_to_analyze = st.sidebar.selectbox("Coluna do texto", df.columns)
+        
+        # OPÇÃO PARA ANALISAR TUDO
+        analyze_all = st.sidebar.checkbox("Analisar arquivo completo", value=False)
+        
+        if not analyze_all:
+            max_rows = len(df)
+            start_at = st.sidebar.number_input("Começar da linha", min_value=0, max_value=max_rows-1, value=0)
+            qty_to_analyze = st.sidebar.number_input("Quantidade de linhas", min_value=1, max_value=max_rows-start_at, value=min(5, max_rows-start_at))
+            btn_label = f"Analisar {qty_to_analyze} linha(s)"
+            df_subset = df.iloc[start_at : start_at + qty_to_analyze]
+        else:
+            btn_label = "Analisar todas as linhas"
+            df_subset = df
+
+        if st.sidebar.button(btn_label):
+            progress_bar = st.progress(0)
+            total_to_process = len(df_subset)
+            
+            for i, (idx, row) in enumerate(df_subset.iterrows()):
+                txt = str(row[column_to_analyze])
+                res = analyze(txt, model_choice)
+                # Adiciona ao histórico usando a foto salva no estado
+                st.session_state.history.append((user_name, f"[CSV] {txt}", res, st.session_state.user_icon))
+                progress_bar.progress((i + 1) / total_to_process)
+            
+            st.success("Processamento concluído!")
+            st.rerun()
+    
+    col_titulo_box, col_foto = st.columns([0.85, 0.15])
+    with col_titulo_box:
         col_img, col_text = st.columns([0.06, 0.94], gap="small")
-        with col_img:
-            st.image("img/inverse-removebg-preview.png", width=350)
-        with col_text:
-            st.title(
-                "Análise de Sentimentos",
-                help="https://github.com/ONE-sentiment-analysis/BIA_frontend_python"
-            )
+        with col_img: st.image("img/inverse-removebg-preview.png", width=350)
+        with col_text: st.title("Análise de Sentimentos")
 
     with col_foto:
-        with st.popover("Foto"):
+        with st.popover("👤 Foto"):
             st.write("Ajuste seu Perfil")
-            user_icon = st.file_uploader(
-                "Escolha uma foto",
-                type=["jpeg", "jpg", "png"]
-        )
-        if user_icon is not None:
-            st.image(user_icon, caption="Prévia da foto", width=150)
+            new_icon = st.file_uploader("Escolha uma foto", type=["jpeg", "jpg", "png"])
+            if new_icon:
+                st.session_state.user_icon = new_icon # Salva globalmente
+                st.image(new_icon, caption="Prévia", width=150)
 
-
+    # 
     user_input = st.chat_input("Digite sua mensagem para análise:")
-
-    # Funções para análise dos sentimento enviados pelo usuário
-    def responseJson(sentiment, acc):
-        return {"previsibilidade": sentiment, "probabilidade": round(acc, 2)}
-
-    def responseAlternative(sentiment, acc):
-        if acc > 0:
-            st.success(f"{sentiment} - Probabilidade: {acc:.2f}")
-        elif acc < 0:
-            st.error(f"{sentiment} - Probabilidade: {acc:.2f}")
-        else:
-            st.warning(f"{sentiment} - Probabilidade: {acc:.2f}")
-
-    
-    def analyze(text: str, model: str):
-        if model == "TextBlob":
-            blob = TextBlob(text)
-            sentiment = blob.sentiment.polarity  
-
-            if sentiment > 0:
-                return responseJson("Positivo", sentiment)
-            elif sentiment < 0:
-                return responseJson("Negativo", abs(sentiment))
-            else:
-                return responseJson("Neutro", 0)
-
-        else:
-            try:
-                auth = HTTPBasicAuth("user", "123")
-                request_id = str(uuid.uuid4())
-                r = requests.post(
-                    "http://localhost:8080/api/v1/sentiment",
-                    json={
-                        "id": request_id,     
-                        "text": text
-                    },
-                    auth=auth,
-                    timeout=10
-                )
-
-                if r.status_code == 200:
-                    return r.json()
-                elif r.status_code == 401:
-                    return responseJson("Erro de autenticação", 0)
-                else:
-                    return responseJson("Erro na API", 0)
-
-            except requests.exceptions.RequestException:
-                return responseJson("Erro de conexão com backend", 0)
-
-   
     if user_input:
-        with st.spinner("Analisando sentimento..."):
+        with st.spinner("Analisando..."):
             result = analyze(user_input, model_choice)
-            st.session_state.history.append(
-                (user_name, user_input, result, user_icon if user_icon else None)
-            )
+            st.session_state.history.append((user_name, user_input, result, st.session_state.user_icon))
         st.rerun()
 
-    # Renderização do chat
     for name, text, result, icon in st.session_state.history:
         with st.chat_message("user", avatar=icon):
             st.write(f"**{name}**")
             st.write(text)
-            
         with st.chat_message("assistant", avatar="🤖"):
             st.write(f"**{ia_name}**")
-            if response_type:
-                st.json(result)
-            else:
-                responseAlternative(
-                    result["previsibilidade"],
-                    result["probabilidade"]
-                )
+            if response_type: st.json(result)
+            else: responseAlternative(result["previsibilidade"], result["probabilidade"])
 
-
-# histórico
+# ABA HISTÓRICO
 elif active == "hist":
     st.markdown("## Histórico")
-    if not st.session_state.history:
-        st.info("Nenhuma análise ainda.")
+    if not st.session_state.history: st.info("Nenhuma análise ainda.")
     else:
         if st.button("Limpar Tudo"):
             st.session_state.history = []
             st.rerun()
-
         for i, (name, text, result, icon) in enumerate(reversed(st.session_state.history)):
             with st.expander(f"Análise {len(st.session_state.history)-i}: {text[:30]}..."):
-                st.write(f"**Usuário:** {name}")
                 st.write(f"**Texto:** {text}")
                 st.write(f"**Sentimento:** {result['previsibilidade']}")
-                st.write(f"**Probabilidade:** {result['probabilidade']}")
