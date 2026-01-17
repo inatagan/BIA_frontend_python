@@ -1,0 +1,11 @@
+# bia_frontend_python/docker-compose.yml
+version: '3.8'
+
+services:
+  frontend-bia:
+    build: .
+    container_name: frontend_bia_container
+    ports:
+      - "8501:8501"
+    networks:
+      - default

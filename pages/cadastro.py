@@ -1,49 +1,7 @@
-#Tela de cadastro 
-
-
 import streamlit as st
-import requests
-    
-def login(password: str, email: str):
-    urlAPI = 'http:localhost:8080/api/v1/auth'
-    userData = {
-        f"email": {email},
-        f"nome": {password}
-    }
-    
-    try:
-        response = requests.post(url=urlAPI, json=userData)
-        if (response.status_code == 201): #201 status criado
-            # st.success(f'Login realizado com sucesso. Bem-vindo {name.capitalize()}')
-            st.success(f'Login realizado com sucesso.')
-        else:
-            st.error(f'Erro ao realizar login {response.status_code}')
-            st.write(response.text)
-    except Exception as e:
-        st.error(f'Ocorreu um erro {e}')
+from services.Register import registerUser
 
-
-def registerUser(name: str, email:str, password:str):
-    urlAPI = 'http:localhost:8080/api/v1/auth'
-    newUser = {
-        "name": {name},
-        "email": {email},
-        "password": {password}
-    }
-    
-    try:
-        response = requests.post(url=urlAPI, json=newUser)
-        if (response.status_code == 201): # TODO: adicionar mais tratamentos de erro para status code
-            st.success(f'Usuário criado com sucesso')
-        else:
-            st.warning(f'Erro ao criar usuário')
-    except Exception as e:
-        st.warning(f'Ocorreu um erro {e}')
-
-
-#Título da página (visível na aba)
 st.set_page_config(page_title="Cadastro", layout="centered")
-
 
 st.markdown("""
 <style>
@@ -53,7 +11,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-#CSS da página
 def aplicar_estilo():
     st.markdown("""
     <style>
@@ -119,7 +76,6 @@ def aplicar_estilo():
     </style>
     """, unsafe_allow_html=True)
 
-#Formulário de cadastro
 aplicar_estilo()
 
 with st.form("cadastro_form"):
@@ -164,8 +120,7 @@ if cadastrar:
     if not nome or not email or not senha:
         st.error("Preencha todos os campos")
     else:
-        st.success("Usuário cadastrado com sucesso 🎉")
-        st.switch_page("app.py")
+        registerUser(name=nome, email=email, password=senha)
 
 if voltar:
     st.switch_page("app.py")

@@ -15,7 +15,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- INICIALIZAÇÃO DE ESTADOS ---
 if "logado" not in st.session_state or not st.session_state.logado:
     st.info("Por favor, faça login primeiro.")
     st.switch_page("app.py")
@@ -30,7 +29,6 @@ if "history" not in st.session_state:
 if "user_icon" not in st.session_state:
     st.session_state.user_icon = None
 
-# --- NAVBAR ---
 tab_map = {"sobre": 0, "analise": 1, "hist": 2}
 current_index = tab_map.get(st.session_state.active_tab, 0)
 
@@ -63,7 +61,6 @@ st.markdown('</div>', unsafe_allow_html=True)
 active = st.session_state.active_tab
 st.divider()
 
-# --- FUNÇÕES DE ANÁLISE ---
 def responseJson(sentiment, acc):
     return {"previsibilidade": sentiment, "probabilidade": round(acc, 2)}
 
@@ -80,15 +77,38 @@ def analyze(text: str, model: str):
         elif sentiment < 0: return responseJson("Negativo", abs(sentiment))
         else: return responseJson("Neutro", 0)
     else:
-        try:
-            auth = HTTPBasicAuth("user", "123")
-            r = requests.post("http://localhost:8080/api/v1/sentiment", 
-                              json={"id": str(uuid.uuid4()), "text": text}, 
-                              auth=auth, timeout=10)
-            return r.json() if r.status_code == 200 else responseJson("Erro na API", 0)
-        except: return responseJson("Erro de conexão", 0)
+        if "token" not in st.session_state:
+            st.error("Sessão expirada. Faça login novamente.")
+            return {"previsibilidade": "Erro", "probabilidade": 0}
 
-# SOBRE 
+        try:
+            headers = {
+                "Authorization": f"Bearer {st.session_state['token']}",
+                "Content-Type": "application/json"
+            }
+
+            payload = {
+                "text": text,
+                "model": "rf" if model == "Oracle" else "lr"
+            }
+
+            r = requests.post(
+                "http://localhost:8080/api/v1/sentiment",
+                json=payload,
+                headers=headers,
+                timeout=10
+            )
+
+            if r.status_code == 200:
+                return r.json()
+            elif r.status_code == 403:
+                st.error("Acesso negado. Token inválido.")
+                return responseJson("Erro Auth", 0)
+            else:
+                return responseJson(f"Erro {r.status_code}", 0)
+        except Exception as e:
+            return responseJson(f"Erro conexão: {e}", 0)
+
 if active == "sobre":
     col_img, col_titulo = st.columns([0.06, 0.94], gap="small")
     with col_img: st.image("img/inverse-removebg-preview.png", width=95)
@@ -119,7 +139,6 @@ if active == "sobre":
         "- Streamlit"
     )
 
-# ANÁLISE 
 elif active == "analise":
     st.sidebar.title("Configuração")
     response_type = st.sidebar.checkbox("Mostrar resposta em JSON", value=True)
@@ -127,7 +146,6 @@ elif active == "analise":
     user_name = st.sidebar.text_input("Nome do usuário", value="você").capitalize().strip()
     ia_name = "B.I.A"
 
-    # csv
     st.sidebar.divider()
     st.sidebar.subheader("📁 Processamento em Lote")
     uploaded_file = st.sidebar.file_uploader("Subir arquivo CSV", type=["csv"])
@@ -135,8 +153,7 @@ elif active == "analise":
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         column_to_analyze = st.sidebar.selectbox("Coluna do texto", df.columns)
-        
-        # OPÇÃO PARA ANALISAR TUDO
+
         analyze_all = st.sidebar.checkbox("Analisar arquivo completo", value=False)
         
         if not analyze_all:
@@ -156,7 +173,6 @@ elif active == "analise":
             for i, (idx, row) in enumerate(df_subset.iterrows()):
                 txt = str(row[column_to_analyze])
                 res = analyze(txt, model_choice)
-                # Adiciona ao histórico usando a foto salva no estado
                 st.session_state.history.append((user_name, f"[CSV] {txt}", res, st.session_state.user_icon))
                 progress_bar.progress((i + 1) / total_to_process)
             
@@ -194,7 +210,6 @@ elif active == "analise":
             if response_type: st.json(result)
             else: responseAlternative(result["previsibilidade"], result["probabilidade"])
 
-# ABA HISTÓRICO
 elif active == "hist":
     st.markdown("## Histórico")
     if not st.session_state.history: st.info("Nenhuma análise ainda.")
